@@ -1,6 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+using Mono.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+NinjectProvider.Initialize();
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -23,5 +27,11 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using(AppDbContext _db = NinjectProvider.Get<AppDbContext>()){
+    bool deleted = await _db.Database.EnsureDeletedAsync();
+    bool created = await _db.Database.EnsureCreatedAsync();
+}
+
 
 app.Run();

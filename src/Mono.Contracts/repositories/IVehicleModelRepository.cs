@@ -1,4 +1,10 @@
-namespace Mono.Contracts.Repositories;
-interface IVehicleModelRepository{
+using Mono.Contracts.Models;
 
+namespace Mono.Contracts.Repositories;
+public interface IVehicleModelRepository {
+    Task<VehicleModel?> Create(VehicleModel model);
+    Task<IEnumerable<VehicleModel>> List();
+    Task<VehicleModel?> Get(int id);
+    Task<VehicleModel?> Update(int id, VehicleModel model);
+    Task<bool?> Delete(int id);
 }
