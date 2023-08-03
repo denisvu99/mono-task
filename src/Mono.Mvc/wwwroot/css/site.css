@@ -21,9 +21,9 @@ body {
   margin-bottom: 60px;
 }
 
-p{
+label{
   margin: 0;
-  margin-left: 0.4em;
+  margin-left: 0.3em;
 }
 
 .flex-col{

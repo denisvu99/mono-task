@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Mono.Contracts.Models;
 using Mono.Contracts.Repositories;
@@ -64,6 +65,43 @@ public class VehicleModelRepository : IVehicleModelRepository
                 if(vehicleModelCache == null) return null;
 
                 return vehicleModelCache.TryRemove(id, out vm);
+            }
+        }
+        return null;
+    }
+
+    public async Task<VehicleModel?> AddTo(int manufacturerId, int modelId){
+
+        var affected = _db.VehicleModels
+            .Where(vm => vm.VehicleModelId == modelId)
+            .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, manufacturerId));
+
+        VehicleModel? old;
+        if(vehicleModelCache != null){
+            if(vehicleModelCache.TryGetValue(modelId, out old)){
+                old.VehicleMakeId = manufacturerId;
+                if(vehicleModelCache.TryUpdate(modelId, old, old)){
+                    return await Task.FromResult(old);
+                }
+            }
+        }
+        return null;
+    }
+
+    public async Task<VehicleModel?> RemoveFrom(int modelId){
+
+        var affected = _db.VehicleModels
+            .Where(vm => vm.VehicleModelId == modelId)
+            .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, (int?)null));
+
+        VehicleModel? old;
+        if(vehicleModelCache != null){
+            if(vehicleModelCache.TryGetValue(modelId, out old)){
+                old.VehicleMakeId = null;
+                old.VehicleMake = null;
+                if(vehicleModelCache.TryUpdate(modelId, old, old)){
+                    return await Task.FromResult(old);
+                }
             }
         }
         return null;

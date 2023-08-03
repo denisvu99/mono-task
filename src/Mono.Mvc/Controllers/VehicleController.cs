@@ -49,7 +49,7 @@ public class VehicleController : Controller
 
     [HttpPost]
     public async Task<IActionResult> DeleteManufacturer(int id){
-        var models = await _vmakeRepo.Delete(id);
+        await _vmakeRepo.Delete(id);
 
         return RedirectToAction(nameof(Manufacturers));
     }
@@ -65,15 +65,30 @@ public class VehicleController : Controller
 
     [HttpPost]
     public async Task<IActionResult> UpdateManufacturerName(int id, string name){
-        var model = _vmakeRepo.UpdateName(id, name);
+        await _vmakeRepo.UpdateName(id, name);
 
         return RedirectToAction(nameof(Manufacturer), new {id = id});
     }
 
     [HttpPost]
     public async Task<IActionResult> AddModelToManufacturer(int id, int modelId){
-
+        await _vmodelRepo.AddTo(id, modelId);
         
         return RedirectToAction(nameof(Manufacturer), new {id = id});
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RemoveModelFromManufacturer(int id, int modelId){
+        await _vmodelRepo.RemoveFrom(modelId);
+
+        return RedirectToAction(nameof(Manufacturer), new {id = id});
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateVehicleModel(CreateVehicleModelVM viewModel){
+        var model = EntityMapper.Map<VehicleModel>(viewModel);
+        await _vmodelRepo.Create(model);
+
+        return RedirectToAction(nameof(Index));
     }
 }

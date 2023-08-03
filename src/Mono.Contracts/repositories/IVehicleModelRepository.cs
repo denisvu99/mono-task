@@ -7,4 +7,6 @@ public interface IVehicleModelRepository {
     Task<VehicleModel?> Get(int id);
     Task<VehicleModel?> Update(int id, VehicleModel model);
     Task<bool?> Delete(int id);
+    Task<VehicleModel?> AddTo(int manufacturerId, int modelId);
+    Task<VehicleModel?> RemoveFrom(int modelId);
 }

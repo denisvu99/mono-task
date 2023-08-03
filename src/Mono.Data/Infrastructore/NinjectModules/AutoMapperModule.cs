@@ -44,6 +44,13 @@ public class AutoMapperModule : NinjectModule
                 .ForMember(dest => dest.VehicleModels, opt => opt.MapFrom(s => s))
                 .ForMember(dest => dest.Manufacturers, opt => opt.Ignore());
 
+            //Config CreateVehicleModelVM
+            cfg.CreateMap<CreateVehicleModelVM, VehicleModel>()
+                .ForMember(dest => dest.ModelName, opts => opts.MapFrom(s => s.Name))
+                .ForMember(dest => dest.VehicleMakeId, opts => opts.MapFrom(s => s.ManufacturerId))
+                .ForMember(dest => dest.VehicleModelId, opts => opts.Ignore())
+                .ForMember(dest => dest.VehicleMake, opts => opts.Ignore());
+
         });
         config.AssertConfigurationIsValid();
 

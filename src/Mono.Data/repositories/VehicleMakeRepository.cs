@@ -47,7 +47,6 @@ public class VehicleMakeRepository : IVehicleMakeRepository
 
     public async Task<VehicleMake?> UpdateName(int id, string name)
     {
-        var model = new VehicleMake () {VehicleMakeId=id, ManufacturerName=name};
         var affected =await _db.VehicleMakes
             .Where(vm => vm.VehicleMakeId == id)
             .ExecuteUpdateAsync(e => e.SetProperty(p => p.ManufacturerName, name));
@@ -56,9 +55,9 @@ public class VehicleMakeRepository : IVehicleMakeRepository
             VehicleMake? old;
             if(vehicleMakeCache != null){
                 if(vehicleMakeCache.TryGetValue(id, out old)){
-                    old.ManufacturerName = model.ManufacturerName;
+                    old.ManufacturerName = name;
                     if(vehicleMakeCache.TryUpdate(id, old, old))
-                    return await Task.FromResult(model);
+                    return await Task.FromResult(old);
                 }
             }
         }

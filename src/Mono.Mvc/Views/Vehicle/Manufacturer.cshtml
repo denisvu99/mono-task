@@ -12,7 +12,7 @@
 <div style="margin-top: 8vh; display:flex; justify-content:center">
     <div class="flex-col" style="width: 60vw; justify-self: center">
         <div class="flex-col">
-            <p>Name</p>
+            <label>Name</label>
             <form method="post" asp-controller="Vehicle" asp-action="UpdateManufacturerName" asp-route-id="@Model.VehicleMakeId">
                 <div class="input-group mb-3">
                     <input class="form-control" name="name" type="text" value="@Model.ManufacturerName" style="width:84%"/>
@@ -23,7 +23,7 @@
             </form>
         </div>
         <div class="flex-col">
-            <p>Add Model</p>
+            <label>Add Model</label>
             <div class="input-group mb-3">
                 <select class="form-select form-select-xs mb-3" style="width:84%">
                     <option selected>Select model</option>
@@ -58,8 +58,8 @@
                                         <form method="patch" asp-controller="Vehicle" asp-action="Vehicle" asp-route-id="@vehicle.VehicleModelId">
                                             <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
                                         </form>
-                                        <form method="post" asp-controller="Vehicle" asp-action="RemoveVehicleFromManufacturer" asp-route-id="@vehicle.VehicleModelId">
-                                            <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+                                        <form method="post" asp-controller="Vehicle" asp-action="RemoveModelFromManufacturer" asp-route-id="@Model.VehicleMakeId" asp-route-modelId="@vehicle.VehicleModelId">
+                                            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-minus"></i></button>
                                         </form>
                                     </div>
                                 </td>
