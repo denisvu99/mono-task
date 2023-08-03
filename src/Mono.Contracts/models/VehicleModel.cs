@@ -7,7 +7,7 @@ public class VehicleModel{
     [Key]
     public int VehicleModelId {get; set;}
     [Required]
-    public string Name {get; set;}
+    public string ModelName {get; set;}
     public int? VehicleMakeId {get; set;}
     [ForeignKey("VehicleMakeId")]
     public VehicleMake? VehicleMake {get; set;}

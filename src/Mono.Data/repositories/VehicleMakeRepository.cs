@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore;
 using Mono.Contracts.Models;
 using Mono.Contracts.Repositories;
 using Mono.Data;
 using System.Collections.Concurrent;
+
 
 public class VehicleMakeRepository : IVehicleMakeRepository
 {
@@ -10,21 +12,23 @@ public class VehicleMakeRepository : IVehicleMakeRepository
     private static ConcurrentDictionary<int, VehicleMake>? vehicleMakeCache;
 
     public VehicleMakeRepository(AppDbContext db){
-        _db = db;
+        _db = NinjectProvider.Get<AppDbContext>();
 
         if (vehicleMakeCache is null)
         {
-            vehicleMakeCache = new ConcurrentDictionary<int, VehicleMake>(_db.VehicleMakes.ToDictionary(vm => vm.VehicleMakeId));
+            vehicleMakeCache = new ConcurrentDictionary<int, VehicleMake>(_db.VehicleMakes.Include(m => m.VehicleModels).ToDictionary(vm => vm.VehicleMakeId));
         }
     }
-    public async Task<VehicleMake?> Create(VehicleMake model)
+    public async Task<IEnumerable<VehicleMake>> Create(string name)
     {
+        var model = new VehicleMake { ManufacturerName = name };
         EntityEntry<VehicleMake> vm = await _db.VehicleMakes.AddAsync(model);
         int affected = await _db.SaveChangesAsync();
         if (affected == 1){
-            if (vehicleMakeCache == null) return model;
+            if (vehicleMakeCache == null) return await Task.FromResult(vehicleMakeCache == null ? Enumerable.Empty<VehicleMake>() : vehicleMakeCache.Values);;
+            vehicleMakeCache.AddOrUpdate(model.VehicleMakeId,model, (key, oldVal) => model);
 
-            return vehicleMakeCache.AddOrUpdate(model.VehicleMakeId,model, (key, oldVal) => model);
+            return await Task.FromResult(vehicleMakeCache == null ? Enumerable.Empty<VehicleMake>() : vehicleMakeCache.Values);
         }
 
         return null;

@@ -1,0 +1,35 @@
+@using Mono.Contracts.Models;
+@model IEnumerable<VehicleMakeModelVM>
+
+<div>
+    <div class="row">
+        <input name="search" onchange="">
+    </div>
+    <div class="row">
+        @if (Model == null){
+            <p>No car models found</p>
+        }else{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Manufacturer <a class="btn"><i class="fa-solid fa-arrow-up"></i></a></th>
+                <th>Model <a class="btn"><i class="fa-solid fa-arrow-up"></i></a></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (VehicleMakeModelVM car in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(item => car.ManufacturerName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(item => car.ModelName)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+    </div>
+</div>

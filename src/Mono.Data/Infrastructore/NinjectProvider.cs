@@ -1,7 +1,8 @@
 using Ninject;
 using Ninject.Modules;
 
-static class NinjectProvider{
+namespace Mono.Data;
+public static class NinjectProvider{
     static StandardKernel _kernel;
 
     static public void Initialize(){

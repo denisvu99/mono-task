@@ -28,10 +28,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-using(AppDbContext _db = NinjectProvider.Get<AppDbContext>()){
-    bool deleted = await _db.Database.EnsureDeletedAsync();
-    bool created = await _db.Database.EnsureCreatedAsync();
-}
+
+AppDbContext _db = NinjectProvider.Get<AppDbContext>();
+bool deleted = await _db.Database.EnsureDeletedAsync();
+bool created = await _db.Database.EnsureCreatedAsync();
 
 
 app.Run();
