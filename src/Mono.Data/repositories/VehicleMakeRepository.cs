@@ -45,13 +45,21 @@ public class VehicleMakeRepository : IVehicleMakeRepository
         return await Task.FromResult(vehicleMakeCache == null ? Enumerable.Empty<VehicleMake>() : vehicleMakeCache.Values);
     }
 
-    public async Task<VehicleMake?> Update(int id, VehicleMake model)
+    public async Task<VehicleMake?> UpdateName(int id, string name)
     {
-        VehicleMake? old;
-        if(vehicleMakeCache != null){
-            if(vehicleMakeCache.TryGetValue(id, out old)){
-                if(vehicleMakeCache.TryUpdate(id, model, old))
-                return await Task.FromResult(model);
+        var model = new VehicleMake () {VehicleMakeId=id, ManufacturerName=name};
+        var affected =await _db.VehicleMakes
+            .Where(vm => vm.VehicleMakeId == id)
+            .ExecuteUpdateAsync(e => e.SetProperty(p => p.ManufacturerName, name));
+
+        if (affected >= 1){
+            VehicleMake? old;
+            if(vehicleMakeCache != null){
+                if(vehicleMakeCache.TryGetValue(id, out old)){
+                    old.ManufacturerName = model.ManufacturerName;
+                    if(vehicleMakeCache.TryUpdate(id, old, old))
+                    return await Task.FromResult(model);
+                }
             }
         }
         return null;
@@ -64,7 +72,7 @@ public class VehicleMakeRepository : IVehicleMakeRepository
         if(vm != null){
             _db.VehicleMakes.Remove(vm);
             int affected = await _db.SaveChangesAsync();
-            if(affected == 1){
+            if(affected >= 1){
                 if(vehicleMakeCache == null) return null;
 
                 return vehicleMakeCache.TryRemove(id, out vm);

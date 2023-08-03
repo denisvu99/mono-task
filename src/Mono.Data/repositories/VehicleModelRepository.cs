@@ -60,7 +60,7 @@ public class VehicleModelRepository : IVehicleModelRepository
         if(vm != null){
             _db.VehicleModels.Remove(vm);
             int affected = await _db.SaveChangesAsync();
-            if(affected == 1){
+            if(affected >= 1){
                 if(vehicleModelCache == null) return null;
 
                 return vehicleModelCache.TryRemove(id, out vm);

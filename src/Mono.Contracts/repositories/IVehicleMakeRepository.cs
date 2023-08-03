@@ -5,6 +5,6 @@ public interface IVehicleMakeRepository {
     public Task<IEnumerable<VehicleMake>> Create(string name);
     public Task<IEnumerable<VehicleMake>> List();
     Task<VehicleMake?> Get(int id);
-    Task<VehicleMake?> Update(int id, VehicleMake model);
+    Task<VehicleMake?> UpdateName(int id, string name);
     public Task<bool?> Delete(int id);
 }
