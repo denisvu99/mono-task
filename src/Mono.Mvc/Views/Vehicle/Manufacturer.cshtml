@@ -24,19 +24,21 @@
         </div>
         <div class="flex-col">
             <label>Add Model</label>
-            <div class="input-group mb-3">
-                <select class="form-select form-select-xs mb-3" style="width:84%">
-                    <option selected>Select model</option>
-                    @foreach(var item in Model.AllVehicleModels){
-                        @if(item.VehicleMakeId == null){//!= Model.VehicleMakeId
-                            <option value="@item.VehicleMakeId">@item.ModelName</option>
-                        }
-                    }
-                </select>
-                <div class="input-group-append" style="width:16%">
-                    <button class="btn btn-primary" style="width: 100%; white-space: nowrap">Add Model</button>
+            <form method="post" asp-controller="Vehicle" asp-action="AddModelToManufacturer" asp-route-id="@Model.VehicleMakeId">
+                <div class="input-group mb-3">
+                        <select name="modelId" class="form-select form-select-xs mb-3" style="width:84%">
+                            <option selected>Select model</option>
+                            @foreach(var item in Model.AllVehicleModels){
+                                @if(item.VehicleMakeId == null){//!= Model.VehicleMakeId
+                                    <option value="@item.VehicleModelId">@item.ModelName</option>
+                                }
+                            }
+                        </select>
+                        <div class="input-group-append" style="width:16%">
+                            <button type="submit" class="btn btn-primary" style="width: 100%; white-space: nowrap">Add Model</button>
+                        </div>
                 </div>
-            </div>
+            </form>
         </div>
         @if(manufacturerModels > 0){
             <table class="table">
