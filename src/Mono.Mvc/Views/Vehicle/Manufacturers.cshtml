@@ -2,12 +2,12 @@
 @model IEnumerable<ManufacturersVM>
 
 <div style="margin-top: 8vh;">
-    <div style="display: flex; justify-content:space-evenly; align-items:center">
+    <div class="flex-se" style="align-items:center">
         <div>
             <div class="card">
                 <div class="card-header"><b>New Manufacturer</b></div>
                 <div class="card-body">
-                    <form style="display: flex;" method="post" action="/vehicle/manufacturers">
+                    <form style="display: flex;" method="post" asp-controller="Vehicle" asp-action="Create">
                         <input name="name" type="text" class="form-control" style="margin-right: 1em" placeholder="Name" aria-label="Name"/>
                         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
                     </form>
@@ -36,10 +36,14 @@
                                     @Html.DisplayFor(item => manufacturer.Count)
                                 </td>
                                 <td>
-                                    <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
-                                    <form asp-controller="Vehicle" asp-action="Manufacturers" asp-route-id="@manufacturer.VehicleMakeId" method="delete">
-                                        <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
-                                    </form>
+                                    <div class="flex-se">
+                                        <form method="patch" asp-controller="Vehicle" asp-action="Manufacturer" asp-route-id="@manufacturer.VehicleMakeId">
+                                            <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
+                                        </form>
+                                        <form method="post" asp-controller="Vehicle" asp-action="Delete" asp-route-id="@manufacturer.VehicleMakeId">
+                                            <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                     }

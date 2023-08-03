@@ -1,0 +1,62 @@
+@using Mono.Contracts.Models
+@model ManufacturerVM
+
+<div style="margin-top: 8vh; display:flex; justify-content:center">
+    <div class="flex-col" style="width: 60vw; justify-self: center">
+        <div class="flex-col">
+            <p>Name</p>
+            <div class="input-group mb-3">
+                <input class="form-control" value="@Model.ManufacturerName" style="width:84%"/>
+                <div class="input-group-append" style="width:16%">
+                    <button class="btn btn-primary" style="width: 100%; white-space: nowrap">Change Name</button>
+                </div>
+            </div>
+        </div>
+        <div class="flex-col">
+            <p>Add Model</p>
+            
+            <div class="input-group mb-3">
+                <select class="form-select form-select-xs mb-3" style="width:84%">
+                    <option selected>Select model</option>
+                    @foreach(var item in Model.AllVehicleModels){
+                        @if(item.VehicleMakeId != Model.VehicleMakeId){
+                            <option value="@item.VehicleMakeId">@item.ModelName</option>
+                        }
+                    }
+                </select>
+                <div class="input-group-append" style="width:16%">
+                    <button class="btn btn-primary" style="width: 100%; white-space: nowrap">Add Model</button>
+                </div>
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 84%;">Model Name</th>
+                    <th style="width: 16%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var vehicle in Model.AllVehicleModels){
+                    @if(vehicle.VehicleMakeId == Model.VehicleMakeId){
+                        <tr>
+                            <td>
+                                @vehicle.ModelName
+                            </td>
+                            <td>
+                                <div class="flex-se">
+                                    <form method="patch" asp-controller="Vehicle" asp-action="Vehicle" asp-route-id="@vehicle.VehicleModelId">
+                                        <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
+                                    </form>
+                                    <form method="post" asp-controller="Vehicle" asp-action="RemoveVehicleFromManufacturer" asp-route-id="@vehicle.VehicleModelId">
+                                        <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

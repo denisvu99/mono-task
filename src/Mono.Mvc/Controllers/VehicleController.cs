@@ -36,18 +36,28 @@ public class VehicleController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Manufacturers(string name){
+    public async Task<IActionResult> Create(string name){
         var models = await _vmakeRepo.Create(name);
         IEnumerable<ManufacturersVM> list = _mapper.Map<IEnumerable<VehicleMake>, IEnumerable<ManufacturersVM>>(models);
 
-        return View(list);
+        return RedirectToAction(nameof(Manufacturers));
     }
 
-    [HttpDelete]
-    public async Task<IActionResult> Manufacturers(int id){
-        Console.WriteLine("deleted");
+
+
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id){
         var models = await _vmakeRepo.Delete(id);
 
         return RedirectToAction(nameof(Manufacturers));
+    }
+
+    public async Task<IActionResult> Manufacturer(int id){
+        var manufacturer = await _vmakeRepo.Get(id);
+        IEnumerable<VehicleModel> models = await _vmodelRepo.List();
+
+        ManufacturerVM model = EntityMapper.Map<ManufacturerVM>(manufacturer, models);
+
+        return View(model);
     }
 }
