@@ -2,12 +2,12 @@
 @model IEnumerable<ManufacturersVM>
 
 <div style="margin-top: 8vh;">
-    <div class="flex-se" style="align-items:center">
+    <div class="flex-se">
         <div>
-            <div class="card">
+            <div class="card" style="margin-top: 12vh;">
                 <div class="card-header"><b>New Manufacturer</b></div>
                 <div class="card-body">
-                    <form style="display: flex;" method="post" asp-controller="Vehicle" asp-action="Create">
+                    <form style="display: flex;" method="post" asp-controller="Vehicle" asp-action="CreateManufacturer">
                         <input name="name" type="text" class="form-control" style="margin-right: 1em" placeholder="Name" aria-label="Name"/>
                         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
                     </form>
@@ -15,7 +15,7 @@
             </div>
         </div>
         @if (@Model == null){
-            <p>No manufacturers found</p>
+            <div>No manufacturers found</div>
         }else{
             <table class="table" style="width:50%;">
                 <thead>
@@ -40,7 +40,7 @@
                                         <form method="patch" asp-controller="Vehicle" asp-action="Manufacturer" asp-route-id="@manufacturer.VehicleMakeId">
                                             <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
                                         </form>
-                                        <form method="post" asp-controller="Vehicle" asp-action="Delete" asp-route-id="@manufacturer.VehicleMakeId">
+                                        <form method="post" asp-controller="Vehicle" asp-action="DeleteManufacturer" asp-route-id="@manufacturer.VehicleMakeId">
                                             <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
                                         </form>
                                     </div>

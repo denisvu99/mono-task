@@ -23,9 +23,11 @@ public class VehicleController : Controller
 
     public async Task<IActionResult> Index(){
         var models = await _vmodelRepo.List();
-        IEnumerable<VehicleMakeModelVM> list = _mapper.Map<IEnumerable<VehicleModel>, IEnumerable<VehicleMakeModelVM>>(models);
+        var manufacturers = await _vmakeRepo.List();
+        IEnumerable<VehicleModelVM> vModelsList = _mapper.Map<IEnumerable<VehicleModel>, IEnumerable<VehicleModelVM>>(models);
+        VehicleModelsExtendedVM viewModel = EntityMapper.Map<VehicleModelsExtendedVM>(vModelsList, manufacturers);
 
-        return View(list);
+        return View(viewModel);
     }
 
     public async Task<IActionResult> Manufacturers(){
@@ -36,7 +38,7 @@ public class VehicleController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(string name){
+    public async Task<IActionResult> CreateManufacturer(string name){
         var models = await _vmakeRepo.Create(name);
         IEnumerable<ManufacturersVM> list = _mapper.Map<IEnumerable<VehicleMake>, IEnumerable<ManufacturersVM>>(models);
 
@@ -46,7 +48,7 @@ public class VehicleController : Controller
 
 
     [HttpPost]
-    public async Task<IActionResult> Delete(int id){
+    public async Task<IActionResult> DeleteManufacturer(int id){
         var models = await _vmakeRepo.Delete(id);
 
         return RedirectToAction(nameof(Manufacturers));
@@ -59,5 +61,19 @@ public class VehicleController : Controller
         ManufacturerVM model = EntityMapper.Map<ManufacturerVM>(manufacturer, models);
 
         return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateManufacturerName(int id, string name){
+        var model = _vmakeRepo.UpdateName(id, name);
+
+        return RedirectToAction(nameof(Manufacturer), new {id = id});
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AddModelToManufacturer(int id, int modelId){
+
+        
+        return RedirectToAction(nameof(Manufacturer), new {id = id});
     }
 }
