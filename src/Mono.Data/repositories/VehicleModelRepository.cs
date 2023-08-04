@@ -42,13 +42,23 @@ public class VehicleModelRepository : IVehicleModelRepository
         return await Task.FromResult(vehicleModelCache == null ? Enumerable.Empty<VehicleModel>() : vehicleModelCache.Values);
     }
 
-    public async Task<VehicleModel?> Update(int id, VehicleModel model)
+    public async Task<VehicleModel?> Update(VehicleModel model)
     {
-        VehicleModel? old;
-        if(vehicleModelCache != null){
-            if(vehicleModelCache.TryGetValue(id, out old)){
-                if(vehicleModelCache.TryUpdate(id, model, old))
-                return await Task.FromResult(model);
+        var affected = await _db.VehicleModels
+            .Where(vm => vm.VehicleMakeId == model.VehicleMakeId)
+            .ExecuteUpdateAsync(e => e
+                .SetProperty(p => p.ModelName, model.ModelName)
+                .SetProperty(p => p.VehicleMakeId, model.VehicleMakeId));
+
+        if (affected >= 1){
+            VehicleModel? old;
+            if(vehicleModelCache != null){
+                if(vehicleModelCache.TryGetValue(model.VehicleModelId, out old)){
+                    old.ModelName = model.ModelName;
+                    old.VehicleMakeId = model.VehicleMakeId;
+                    if(vehicleModelCache.TryUpdate(model.VehicleModelId, old, old))
+                    return await Task.FromResult(old);
+                }
             }
         }
         return null;

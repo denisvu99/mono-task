@@ -45,8 +45,6 @@ public class VehicleController : Controller
         return RedirectToAction(nameof(Manufacturers));
     }
 
-
-
     [HttpPost]
     public async Task<IActionResult> DeleteManufacturer(int id){
         await _vmakeRepo.Delete(id);
@@ -84,6 +82,14 @@ public class VehicleController : Controller
         return RedirectToAction(nameof(Manufacturer), new {id = id});
     }
 
+    public async Task<IActionResult> VehicleModel(int id){
+        var model = await _vmodelRepo.Get(id);
+        var manufacturers = await _vmakeRepo.List();
+        var vModel = EntityMapper.Map<UpdateVehicleModelVM>(model, manufacturers);
+
+        return View(vModel);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateVehicleModel(CreateVehicleModelVM viewModel){
         var model = EntityMapper.Map<VehicleModel>(viewModel);
@@ -91,4 +97,14 @@ public class VehicleController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateVehicleModel(UpdateVehicleModelVM viewModel){
+        var model = EntityMapper.Map<VehicleModel>(viewModel);
+        await _vmodelRepo.Update(model); 
+
+        return RedirectToAction(nameof(Index));
+    }
+
+
 }

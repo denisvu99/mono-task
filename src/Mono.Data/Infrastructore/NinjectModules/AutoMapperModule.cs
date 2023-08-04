@@ -32,8 +32,10 @@ public class AutoMapperModule : NinjectModule
                 
             //Config VehicleModelsVM
             cfg.CreateMap<VehicleModel, VehicleModelVM>()
-                .ForMember(dest => dest.ManufacturerName, opt => opt.MapFrom(s => s.VehicleMake.ManufacturerName))
-                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(s => s.ModelName));
+                .ForMember(dest => dest.ModelId, opt => opt.MapFrom(s => s.VehicleModelId))
+                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(s => s.ModelName))
+                .ForMember(dest => dest.ManufacturerId, opt => opt.MapFrom(s => s.VehicleMake.VehicleMakeId))
+                .ForMember(dest => dest.ManufacturerName, opt => opt.MapFrom(s => s.VehicleMake.ManufacturerName));
 
             //Config VehicleModelsExtendedVM
             cfg.CreateMap<IEnumerable<VehicleMake>, VehicleModelsExtendedVM>()
@@ -49,6 +51,25 @@ public class AutoMapperModule : NinjectModule
                 .ForMember(dest => dest.ModelName, opts => opts.MapFrom(s => s.Name))
                 .ForMember(dest => dest.VehicleMakeId, opts => opts.MapFrom(s => s.ManufacturerId))
                 .ForMember(dest => dest.VehicleModelId, opts => opts.Ignore())
+                .ForMember(dest => dest.VehicleMake, opts => opts.Ignore());
+
+            //Config UpdateVehicleModelVM
+            cfg.CreateMap<VehicleModel, UpdateVehicleModelVM>()
+                .ForMember(dest => dest.Name, opts => opts.MapFrom(s => s.ModelName))
+                .ForMember(dest => dest.ModelId, opts => opts.MapFrom(s => s.VehicleModelId))
+                .ForMember(dest => dest.ManufacturerId, opts => opts.MapFrom(s => s.VehicleMakeId))
+                .ForMember(dest => dest.ManufacturersList, opts => opts.Ignore());
+
+            cfg.CreateMap<IEnumerable<VehicleMake>, UpdateVehicleModelVM>()
+                .ForMember(dest => dest.Name, opts => opts.Ignore())
+                .ForMember(dest => dest.ModelId, opts => opts.Ignore())
+                .ForMember(dest => dest.ManufacturerId, opts => opts.Ignore())
+                .ForMember(dest => dest.ManufacturersList, opts => opts.MapFrom(s => s));
+
+            cfg.CreateMap<UpdateVehicleModelVM, VehicleModel>()
+                .ForMember(dest => dest.VehicleModelId, opts => opts.MapFrom(s => s.ModelId))
+                .ForMember(dest => dest.ModelName, opts => opts.MapFrom(s => s.Name))
+                .ForMember(dest => dest.VehicleMakeId, opts => opts.MapFrom(s => s.ManufacturerId))
                 .ForMember(dest => dest.VehicleMake, opts => opts.Ignore());
 
         });
