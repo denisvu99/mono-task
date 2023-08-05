@@ -12,16 +12,28 @@ public class VehicleModelRepository : IVehicleModelRepository
 
     public VehicleModelRepository(AppDbContext db){
         _db = db;
-
-        if (vehicleModelCache is null)
-        {
-            vehicleModelCache = new ConcurrentDictionary<int, VehicleModel>(_db.VehicleModels.ToDictionary(vm => vm.VehicleModelId));
-        }
     }
+
+    public ConcurrentDictionary<int, VehicleModel> InitDictionary()
+    {
+        var dictionary = _db.VehicleModels.Include(p => p.VehicleMake).ToDictionary(vm => vm.VehicleModelId);
+
+        return new ConcurrentDictionary<int, VehicleModel>(dictionary);
+    }
+
+    public async Task<ConcurrentDictionary<int, VehicleModel>> List()
+    {
+        var dictionary = await _db.VehicleModels.Include(p => p.VehicleMake).ToDictionaryAsync(vm => vm.VehicleModelId);
+
+        return new ConcurrentDictionary<int, VehicleModel>(dictionary);
+    }
+
     public async Task<VehicleModel?> Create(VehicleModel model)
     {
-        EntityEntry<VehicleModel> vm = await _db.VehicleModels.AddAsync(model);
-        int affected = await _db.SaveChangesAsync();
+        var entity = await _db.VehicleModels.AddAsync(model);
+        var affected = await _db.SaveChangesAsync();
+        if (affected == 1) return entity.Entity;
+        return null;
         if (affected == 1){
             if (vehicleModelCache == null) return model;
 
@@ -35,11 +47,6 @@ public class VehicleModelRepository : IVehicleModelRepository
         if (vehicleModelCache == null) return null;
         vehicleModelCache.TryGetValue(id, out VehicleModel? vm);
         return await Task.FromResult(vm);
-    }
-
-    public async Task<IEnumerable<VehicleModel>> List()
-    {
-        return await Task.FromResult(vehicleModelCache == null ? Enumerable.Empty<VehicleModel>() : vehicleModelCache.Values);
     }
 
     public async Task<VehicleModel?> Update(VehicleModel model)
@@ -80,40 +87,21 @@ public class VehicleModelRepository : IVehicleModelRepository
         return null;
     }
 
-    public async Task<VehicleModel?> AddTo(int manufacturerId, int modelId){
+    public async Task<bool?> AddTo(int manufacturerId, int modelId){
 
-        var affected = _db.VehicleModels
+        var affected = await _db.VehicleModels
             .Where(vm => vm.VehicleModelId == modelId)
             .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, manufacturerId));
 
-        VehicleModel? old;
-        if(vehicleModelCache != null){
-            if(vehicleModelCache.TryGetValue(modelId, out old)){
-                old.VehicleMakeId = manufacturerId;
-                if(vehicleModelCache.TryUpdate(modelId, old, old)){
-                    return await Task.FromResult(old);
-                }
-            }
-        }
-        return null;
+        return affected >= 1;
     }
 
-    public async Task<VehicleModel?> RemoveFrom(int modelId){
+    public async Task<bool?> RemoveFrom(int modelId){
 
-        var affected = _db.VehicleModels
+        var affected = await _db.VehicleModels
             .Where(vm => vm.VehicleModelId == modelId)
             .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, (int?)null));
 
-        VehicleModel? old;
-        if(vehicleModelCache != null){
-            if(vehicleModelCache.TryGetValue(modelId, out old)){
-                old.VehicleMakeId = null;
-                old.VehicleMake = null;
-                if(vehicleModelCache.TryUpdate(modelId, old, old)){
-                    return await Task.FromResult(old);
-                }
-            }
-        }
-        return null;
+        return affected >= 1;
     }
 }

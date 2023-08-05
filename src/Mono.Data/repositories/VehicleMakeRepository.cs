@@ -36,8 +36,9 @@ public class VehicleMakeRepository : IVehicleMakeRepository
     public async Task<VehicleMake?> Create(VehicleMake model)
     {
         var entity = await _db.VehicleMakes.AddAsync(model);
-        await _db.SaveChangesAsync();
-        return entity.Entity;
+        var affected = await _db.SaveChangesAsync();
+        if (affected == 1) return entity.Entity;
+        return null;
     }
 
     public async Task<bool?> Delete(int id)

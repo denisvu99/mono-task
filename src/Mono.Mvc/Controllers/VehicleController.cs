@@ -19,8 +19,9 @@ public class VehicleController : Controller
     }
 
     public async Task<IActionResult> Index(){
+        var models = await _vehicleService.ListVehicleModels();
 
-        return View();
+        return View(models);
     }
 
     public async Task<IActionResult> Manufacturers(){
@@ -44,24 +45,28 @@ public class VehicleController : Controller
     }
 
     public async Task<IActionResult> Manufacturer(int id){
+        var manufacturer = await _vehicleService.GetManufacturer(id);
 
-        return View();
+        return View(manufacturer);
     }
 
     [HttpPost]
     public async Task<IActionResult> UpdateManufacturerName(int id, string name){
+        var model = await _vehicleService.UpdateManufacturerName(id, name);
 
         return RedirectToAction(nameof(Manufacturer), new {id = id});
     }
 
     [HttpPost]
     public async Task<IActionResult> AddModelToManufacturer(int id, int modelId){
-        
+        var isAdded = await _vehicleService.AddModelToManufacturer(id, modelId);
+
         return RedirectToAction(nameof(Manufacturer), new {id = id});
     }
 
     [HttpPost]
     public async Task<IActionResult> RemoveModelFromManufacturer(int id, int modelId){
+        var isRemoved = await _vehicleService.RemoveModelFromManufacturer(id, modelId);
 
         return RedirectToAction(nameof(Manufacturer), new {id = id});
     }
