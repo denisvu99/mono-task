@@ -10,15 +10,15 @@ public class VehicleMakeRepository : IVehicleMakeRepository
 {
     private AppDbContext _db;
 
+    public VehicleMakeRepository(AppDbContext db){
+        _db = db;
+    }
+
     public ConcurrentDictionary<int, VehicleMake> InitDictionary()
     {
         var dictionary = _db.VehicleMakes.Include(m => m.VehicleModels).ToDictionary(vm => vm.VehicleMakeId);
 
         return new ConcurrentDictionary<int, VehicleMake>(dictionary);
-    }
-
-    public VehicleMakeRepository(AppDbContext db){
-        _db = db;
     }
 
     public async Task<ConcurrentDictionary<int, VehicleMake>> List()
