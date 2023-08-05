@@ -3,7 +3,7 @@ using Ninject.Modules;
 using AutoMapper;
 using Mono.Contracts.Models;
 
-public class AutoMapperModule : NinjectModule
+internal class AutoMapperModule : NinjectModule
 {
     public override void Load()
     {

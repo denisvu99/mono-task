@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Mono.Contracts.Services;
 using Mono.Data;
+using Mono.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,9 +31,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
-AppDbContext _db = NinjectProvider.Get<AppDbContext>();
-bool deleted = await _db.Database.EnsureDeletedAsync();
-bool created = await _db.Database.EnsureCreatedAsync();
-
+var dbInitializer = NinjectProvider.Get<IVehicleService>();
+await dbInitializer.InitializeDatabase();
 
 app.Run();

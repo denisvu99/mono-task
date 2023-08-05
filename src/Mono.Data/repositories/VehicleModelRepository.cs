@@ -10,8 +10,8 @@ public class VehicleModelRepository : IVehicleModelRepository
     private AppDbContext _db;
     private static ConcurrentDictionary<int, VehicleModel>? vehicleModelCache;
 
-    public VehicleModelRepository(){
-        _db = NinjectProvider.Get<AppDbContext>();
+    public VehicleModelRepository(AppDbContext db){
+        _db = db;
 
         if (vehicleModelCache is null)
         {
