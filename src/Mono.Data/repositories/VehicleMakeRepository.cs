@@ -30,7 +30,7 @@ public class VehicleMakeRepository : IVehicleMakeRepository
 
     public async Task<VehicleMake?> Get(int id)
     {
-        return await _db.VehicleMakes.FirstOrDefaultAsync(e => e.VehicleMakeId == id);
+        return await _db.VehicleMakes.Include(m => m.VehicleModels).FirstOrDefaultAsync(e => e.VehicleMakeId == id);
     }
 
     public async Task<VehicleMake?> Create(VehicleMake model)
