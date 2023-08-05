@@ -30,8 +30,4 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
-var dbInitializer = NinjectProvider.Get<IVehicleService>();
-await dbInitializer.InitializeDatabase();
-
 app.Run();

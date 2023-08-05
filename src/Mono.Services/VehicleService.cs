@@ -17,6 +17,9 @@ public class VehicleService : IVehicleService
 
     public VehicleService(){
         NinjectProvider.Initialize();
+        var db = NinjectProvider.Get<AppDbContext>();
+        db.Database.EnsureDeleted();
+        db.Database.EnsureCreated();
         _vmakeRepo = NinjectProvider.Get<IVehicleMakeRepository>();
         _vmodelRepo = NinjectProvider.Get<IVehicleModelRepository>();
         _mapper = NinjectProvider.Get<IMapper>();
@@ -26,13 +29,6 @@ public class VehicleService : IVehicleService
         {
             vehicleMakeCache = _vmakeRepo.InitDictionary();
         }
-    }
-
-    public async Task InitializeDatabase()
-    {
-        var initializer = new AppDbInitializer(NinjectProvider.Get<AppDbContext>());
-        await initializer.EnsureDatabaseCreatedAsync();
-        await initializer.EnsureDatabaseDeletedAsync();
     }
 
     public async Task<IEnumerable<ManufacturersVM>> ListManufacturers()
@@ -97,9 +93,8 @@ public class VehicleService : IVehicleService
 
     public async Task<bool?> DeleteManufacturer(int id)
     {
-        bool affected = await _vmakeRepo.Delete(id);
-        
-        if (affected) {
+        bool? affected = await _vmakeRepo.Delete(id);
+        if (affected == true) {
             if (vehicleMakeCache == null) return null;
 
             return vehicleMakeCache.TryRemove(id, out _);

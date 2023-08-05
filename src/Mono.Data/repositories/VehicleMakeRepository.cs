@@ -40,11 +40,12 @@ public class VehicleMakeRepository : IVehicleMakeRepository
         return entity.Entity;
     }
 
-    public async Task<bool> Delete(int id)
+    public async Task<bool?> Delete(int id)
     {
-        var affected = await _db.VehicleMakes
-            .Where(p => p.VehicleMakeId == id)
-            .ExecuteDeleteAsync();
+        var manufacturer = await Get(id);
+        if (manufacturer == null) return null;
+        _db.VehicleMakes.Remove(manufacturer);
+        var affected = await _db.SaveChangesAsync();
         return affected >= 1;
     }
 

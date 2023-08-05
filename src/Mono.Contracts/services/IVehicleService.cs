@@ -2,7 +2,6 @@ using Mono.Contracts.Models;
 
 namespace Mono.Contracts.Services;
 public interface IVehicleService {
-    Task InitializeDatabase();
     Task<IEnumerable<ManufacturersVM>> ListManufacturers();
     Task<ManufacturerVM?> GetManufacturer(int id);
     Task<IEnumerable<ManufacturersVM>> CreateManufacturer(string name);

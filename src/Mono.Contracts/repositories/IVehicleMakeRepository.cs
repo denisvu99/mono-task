@@ -8,5 +8,5 @@ public interface IVehicleMakeRepository {
     Task<ConcurrentDictionary<int,VehicleMake>> List();
     Task<VehicleMake?> Get(int id);
     Task<bool> UpdateName(int id, string name);
-    Task<bool> Delete(int id);
+    Task<bool?> Delete(int id);
 }

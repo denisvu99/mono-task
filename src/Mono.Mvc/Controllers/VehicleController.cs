@@ -24,19 +24,21 @@ public class VehicleController : Controller
     }
 
     public async Task<IActionResult> Manufacturers(){
-        
+        IEnumerable<ManufacturersVM> manufacturers = await _vehicleService.ListManufacturers();
 
-        return View();
+        return View(manufacturers);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateManufacturer(string name){
+        var manufacturers = await _vehicleService.CreateManufacturer(name);
 
-        return RedirectToAction(nameof(Manufacturers));
+        return View(nameof(Manufacturers), manufacturers);
     }
 
     [HttpPost]
     public async Task<IActionResult> DeleteManufacturer(int id){
+        var isDeleted = await _vehicleService.DeleteManufacturer(id);
 
         return RedirectToAction(nameof(Manufacturers));
     }

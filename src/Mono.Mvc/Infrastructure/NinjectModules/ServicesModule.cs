@@ -6,7 +6,6 @@ internal class ServicesModule : NinjectModule
 {
     public override void Load()
     {
-        Bind<IAppDbInitializer>().To<AppDbInitializer>();
         Bind<IVehicleService>().To<VehicleService>();
     }
 }
