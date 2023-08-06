@@ -22,6 +22,8 @@ public class VehicleController : Controller
     public async Task<IActionResult> Index(string sortOrder, int? filter, int? page){
         ViewBag.ManSort = String.IsNullOrEmpty(sortOrder) ? "man_desc" : "";
         ViewBag.ModelSort = sortOrder == "model_asc" ? "model_desc" : "model_asc";
+        ViewBag.CurrentSort = sortOrder;
+        ViewBag.CurrentFilter = filter;
 
         var models = await _vehicleService.ListVehicleModels(sortOrder, filter);
 

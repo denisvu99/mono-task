@@ -22,7 +22,7 @@
                     <tr>
                         <th style="margin: 0; padding: 0;">
                             Model 
-                            <a class="btn" asp-action="Index" asp-route-sortOrder="@ViewBag.ModelSort">
+                            <a class="btn" asp-action="Index" asp-route-sortOrder="@ViewBag.ModelSort" asp-route-filter="@ViewBag.CurrentFilter">
                                 @if(ViewBag.ModelSort == "model_asc"){
                                     <i class="fa-solid fa-arrow-up"></i>
                                 }else{
@@ -32,7 +32,7 @@
                         </th>
                         <th style="margin: 0; padding: 0;">
                             Manufacturer 
-                            <a class="btn" asp-action="Index" asp-route-sortOrder="@ViewBag.ManSort">
+                            <a class="btn" asp-action="Index" asp-route-sortOrder="@ViewBag.ManSort" asp-route-filter="@ViewBag.CurrentFilter">
                                 @if(String.IsNullOrEmpty(ViewBag.ManSort)){
                                     <i class="fa-solid fa-arrow-up"></i>
                                 }else{
@@ -73,7 +73,7 @@
                 @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index",
                     new
                         {
-                            page,
+                            page, sortOrder = ViewBag.CurrentSort, filter = ViewBag.CurrentFilter
                     }),
                     new PagedListRenderOptions
                     {
@@ -94,7 +94,8 @@
         function redirectToManufacturers(selectElement) {
             var selectedValue = selectElement.value;
             if (selectedValue !== '') {
-                window.location.href = '@Url.Action("Index", "Vehicle")' + '?filter=' + selectedValue;
+                var sortOrder = '@ViewBag.CurrentSort';
+                window.location.href = '@Url.Action("Index", "Vehicle")' + '?sortOrder=' + sortOrder + '&filter=' + selectedValue;
             }
         }
     </script>
