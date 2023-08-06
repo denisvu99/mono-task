@@ -6,6 +6,6 @@ internal class ServicesModule : NinjectModule
 {
     public override void Load()
     {
-        Bind<IVehicleService>().To<VehicleService>();
+        Bind<IVehicleService>().To<VehicleService>().InSingletonScope();
     }
 }

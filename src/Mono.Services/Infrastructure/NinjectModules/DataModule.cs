@@ -12,7 +12,7 @@ internal class DataModule : NinjectModule
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(_connectionString);
         Bind<AppDbContext>().ToSelf().InSingletonScope().WithConstructorArgument("options",optionsBuilder.Options);
-        Bind<IVehicleMakeRepository>().To<VehicleMakeRepository>().WithConstructorArgument("db", ctx => ctx.Kernel.Get<AppDbContext>());
-        Bind<IVehicleModelRepository>().To<VehicleModelRepository>().WithConstructorArgument("db", ctx => ctx.Kernel.Get<AppDbContext>());
+        Bind<IVehicleMakeRepository>().To<VehicleMakeRepository>().InThreadScope().WithConstructorArgument("db", ctx => ctx.Kernel.Get<AppDbContext>());
+        Bind<IVehicleModelRepository>().To<VehicleModelRepository>().InThreadScope().WithConstructorArgument("db", ctx => ctx.Kernel.Get<AppDbContext>());
     }
 }

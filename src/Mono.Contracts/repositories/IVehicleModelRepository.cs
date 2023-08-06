@@ -3,9 +3,8 @@ using Mono.Contracts.Models;
 
 namespace Mono.Contracts.Repositories;
 public interface IVehicleModelRepository {
-    ConcurrentDictionary<int,VehicleModel> InitDictionary();
-    Task<VehicleModel?> Create(VehicleModel model);
-    Task<ConcurrentDictionary<int, VehicleModel>> List();
+    Task<bool?> Create(VehicleModel model);
+    Task<IEnumerable<VehicleModel>> List();
     Task<VehicleModel?> Get(int id);
     Task<bool> Update(VehicleModel model);
     Task<bool?> Delete(int id);

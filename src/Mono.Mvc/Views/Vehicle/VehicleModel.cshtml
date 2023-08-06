@@ -18,7 +18,7 @@
         <select asp-for="ManufacturerId" class="form-select form-select-xs mb-3" style="width:84%">
                 <option>Select manufacturer</option>
                 @foreach(var item in Model.ManufacturersList){
-                  <option value="@item.VehicleMakeId" selected="@(item.VehicleMakeId == Model.ManufacturerId ? true : false)">@item.ManufacturerName</option>
+                  <option value="@item.ManufacturerId" selected="@(item.ManufacturerId == Model.ManufacturerId ? true : false)">@item.ManufacturerName</option>
                 }
             </select>
         <span asp-validation-for="ManufacturerId" class="text-danger"></span>

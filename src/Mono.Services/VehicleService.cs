@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Mono.Contracts;
 using Mono.Contracts.Models;
 using Mono.Contracts.Repositories;
@@ -12,8 +13,6 @@ public class VehicleService : IVehicleService
 {
     private IVehicleMakeRepository _vmakeRepo;
     private IVehicleModelRepository _vmodelRepo;
-    private static ConcurrentDictionary<int, VehicleMake>? manufacturerCache;
-    private static ConcurrentDictionary<int, VehicleModel>? vehicleModelCache;
 
     public VehicleService(){
         NinjectProvider.Initialize();
@@ -23,206 +22,103 @@ public class VehicleService : IVehicleService
 
         _vmakeRepo = NinjectProvider.Get<IVehicleMakeRepository>();
         _vmodelRepo = NinjectProvider.Get<IVehicleModelRepository>();
-
-
-        manufacturerCache ??= _vmakeRepo.InitDictionary();
-        vehicleModelCache ??= _vmodelRepo.InitDictionary();
     }
 
-    public async Task<IEnumerable<ManufacturersVM>> ListManufacturers()
+    public async Task<IEnumerable<ManufacturersVM>> ListManufacturers(string sortOrder, int? filter)
     {
-        IEnumerable<ManufacturersVM> list;
-        if(manufacturerCache != null){
-            list = EntityMapper.Map<IEnumerable<ManufacturersVM>>(manufacturerCache.Values);
-        }else{
-            manufacturerCache = await _vmakeRepo.List();
-            list = EntityMapper.Map<IEnumerable<ManufacturersVM>>(manufacturerCache.Values);
+        var viewModel = EntityMapper.Map<IEnumerable<ManufacturersVM>>(await _vmakeRepo.List());
+
+        if (filter != null){
+            viewModel = viewModel.Where(p => p.Count == filter);
         }
-        
-        return list;
+
+        viewModel = sortOrder switch
+        {
+            "man_desc" => viewModel.OrderByDescending(s => s.ManufacturerName),
+            "count_desc" => viewModel.OrderByDescending(s => s.Count),
+            "count_asc" => viewModel.OrderBy(s => s.Count),
+            _ => viewModel.OrderBy(s => s.ManufacturerName),
+        };
+        return viewModel;
     }
 
     public async Task<ManufacturerVM?> GetManufacturer(int id)
     {
-        if(manufacturerCache == null || vehicleModelCache == null) return null;
+        var manufacturer = await _vmakeRepo.Get(id);
+        if(manufacturer == null)return null;
+        IEnumerable<VehicleModel> models = await _vmodelRepo.List();
 
-        
-        if (!manufacturerCache.TryGetValue(id, out VehicleMake? manufacturer)){
-            manufacturer ??= await _vmakeRepo.Get(id);
-            if (manufacturer != null) manufacturerCache.AddOrUpdate(id, manufacturer, (key, oldVal) => manufacturer);
-            else return null;
-        }
-
-        IEnumerable<VehicleModel> models = vehicleModelCache.Values;
-
-        ManufacturerVM model = EntityMapper.Map<ManufacturerVM>(manufacturer, vehicleModelCache.Values);
-
-        return model;
+        return EntityMapper.Map<ManufacturerVM>(manufacturer, models);
     }
 
-    public async Task<IEnumerable<ManufacturersVM>> CreateManufacturer(string name)
+    public async Task<bool?> CreateManufacturer(string name)
     {
-        VehicleMake model = new VehicleMake() {ManufacturerName = name};
-        var manufacturer = await _vmakeRepo.Create(model);
-        if (manufacturer != null) {
-            if(manufacturerCache == null) return null;
-            manufacturerCache.AddOrUpdate(manufacturer.VehicleMakeId, manufacturer, (key, oldVal) => manufacturer);
-        }
-        if(manufacturerCache == null) return null;
-        return EntityMapper.Map<IEnumerable<ManufacturersVM>>(manufacturerCache.Values);
+        return await _vmakeRepo.Create(new VehicleMake() {ManufacturerName = name});
     }
 
-    public async Task<ManufacturerVM?> UpdateManufacturerName(int id, string name)
+    public async Task<bool?> UpdateManufacturerName(int id, string name)
     {
-        bool affected = await _vmakeRepo.UpdateName(id, name);
-        if (affected) {
-            if(manufacturerCache != null){
-                if(manufacturerCache.TryGetValue(id, out VehicleMake? model)){
-                    model.ManufacturerName = name;
-                    if(manufacturerCache.TryUpdate(id, model, model))
-                    return EntityMapper.Map<ManufacturerVM>(model);
-                }
-            }
-        }
-        return null;
+        return await _vmakeRepo.UpdateName(id, name);
     }
 
     public async Task<bool?> DeleteManufacturer(int id)
     {
-        bool? affected = await _vmakeRepo.Delete(id);
-        if (affected == true) {
-            if (manufacturerCache == null) return null;
-
-            return manufacturerCache.TryRemove(id, out _);
-        }
-
-        return affected;
+        return await _vmakeRepo.Delete(id);
     }
 
     public async Task<bool?> AddModelToManufacturer(int manufacturerId, int modelId)
     {
-        bool? affected = await _vmodelRepo.AddTo(manufacturerId, modelId);
-        if( affected == true){
-            if(vehicleModelCache != null && manufacturerCache != null){
-                if (vehicleModelCache.TryGetValue(modelId, out VehicleModel? vehicleModel) &&
-                manufacturerCache.TryGetValue(manufacturerId, out VehicleMake? manufacturer))
-                {
-                    vehicleModel.VehicleMake = manufacturer;
-                    vehicleModel.VehicleMakeId = manufacturer.VehicleMakeId;
-                    vehicleModelCache.TryUpdate(modelId, vehicleModel, vehicleModel);
-                    manufacturer.VehicleModels.Add(vehicleModel);
-                    manufacturerCache.TryUpdate(manufacturerId, manufacturer, manufacturer);
-                }
-
-            }
-        }
-        
-        return affected;
+        return await _vmodelRepo.AddTo(manufacturerId, modelId);
     }
 
     public async Task<bool?> RemoveModelFromManufacturer(int manufacturerId,int modelId)
     {
-        bool? affected = await _vmodelRepo.RemoveFrom(modelId);
-        if (affected == true){
-            if (vehicleModelCache != null && manufacturerCache != null){
-                if (vehicleModelCache.TryGetValue(modelId, out VehicleModel? model) &&
-                    manufacturerCache.TryGetValue(manufacturerId, out VehicleMake? manufacturer)){
-                    
-                    manufacturer.VehicleModels.Remove(model);
-                    manufacturerCache.TryUpdate(manufacturerId, manufacturer, manufacturer);
-                    
-                    model.VehicleMakeId = null;
-                    model.VehicleMake = null;
-                    vehicleModelCache.TryUpdate(modelId, model, model);
-                }
-            }
-        }
-        
-        return affected;
+        return await _vmodelRepo.RemoveFrom(modelId);
     }
 
-    public async Task<VehicleModelsExtendedVM> ListVehicleModels()
+    public async Task<IEnumerable<VehicleModelVM>> ListVehicleModels(string sortOrder, int? filter)
     {
-        IEnumerable<VehicleModel> vehicleModels;
-        if (vehicleModelCache != null){
-            vehicleModels = vehicleModelCache.Values;
-        }else{
-            vehicleModelCache  = await _vmodelRepo.List();
-            vehicleModels = vehicleModelCache.Values;
-        }
-        IEnumerable<VehicleMake> vehicleManufacturers;
-        if (manufacturerCache != null){
-            vehicleManufacturers = manufacturerCache.Values;
-        }else{
-            manufacturerCache  = await _vmakeRepo.List();
-            vehicleManufacturers = manufacturerCache.Values;
-        }
-        IEnumerable<VehicleModelVM> vModelsList = EntityMapper.Map<IEnumerable<VehicleModelVM>>(vehicleModels);
-        VehicleModelsExtendedVM viewModel = EntityMapper.Map<VehicleModelsExtendedVM>(vModelsList, vehicleManufacturers);
-        
+        IEnumerable<VehicleModelVM> vModelsList = EntityMapper.Map<IEnumerable<VehicleModelVM>>(await _vmodelRepo.List());
 
-        return viewModel;
+        if (filter != null){
+            vModelsList = vModelsList.Where(p => p.ManufacturerId == filter);
+        }
+
+        vModelsList = sortOrder switch{
+            "man_desc" => vModelsList.OrderByDescending(s => s.ManufacturerName),
+            "model_desc" => vModelsList.OrderByDescending(s => s.ModelName),
+            "model_asc" => vModelsList.OrderBy(s => s.ModelName),
+            _ => vModelsList.OrderBy(s => s.ManufacturerName),
+        };
+
+        return vModelsList;
     }
 
-    public async Task<UpdateVehicleModelVM> GetVehicleModel(int id)
+    public async Task<UpdateVehicleModelVM?> GetVehicleModel(int id)
     {
-        if(manufacturerCache == null || vehicleModelCache == null) return null;
+        var vehicleModel = await _vmodelRepo.Get(id);
+        if (vehicleModel == null) return null;
+        var manufacturers = await _vmakeRepo.List();
 
-        if(!vehicleModelCache.TryGetValue(id, out VehicleModel? vehicleModel)){
-            vehicleModel = await _vmodelRepo.Get(id);
-            if (vehicleModel != null) vehicleModelCache.AddOrUpdate(id, vehicleModel, (key, oldVal) => vehicleModel);
-            else return null;
-        }
-        var manufacturers = manufacturerCache.Values;
-        var vModel = EntityMapper.Map<UpdateVehicleModelVM>(vehicleModel, manufacturers);
-
-        return vModel;
+        return EntityMapper.Map<UpdateVehicleModelVM>(vehicleModel, manufacturers);
     }
 
-    public async Task<VehicleModelsExtendedVM?> CreateVehicleModel(CreateVehicleModelVM viewModel)
+    public async Task<bool?> CreateVehicleModel(CreateVehicleModelVM viewModel)
     {
-        var vehicleModel = await _vmodelRepo.Create(EntityMapper.Map<VehicleModel>(viewModel));
-        if(vehicleModelCache == null || manufacturerCache == null) return null;
-        if (vehicleModel != null){
-            vehicleModelCache.AddOrUpdate(vehicleModel.VehicleModelId, vehicleModel, (key, oldVal) => vehicleModel);
-            if (vehicleModel.VehicleMakeId != null){
-                if(manufacturerCache.TryGetValue((int)vehicleModel.VehicleMakeId, out VehicleMake? manufacturer)){
-                    manufacturer.VehicleModels.Add(vehicleModel);
-                    manufacturerCache.TryUpdate(manufacturer.VehicleMakeId, manufacturer,manufacturer);
-                }
-            }
-        }
-        IEnumerable<VehicleModelVM> vModelsList = EntityMapper.Map<IEnumerable<VehicleModelVM>>(vehicleModelCache.Values);
-        VehicleModelsExtendedVM newVehicleModel = EntityMapper.Map<VehicleModelsExtendedVM>(vModelsList, manufacturerCache.Values);
-
-        return newVehicleModel;
+        return await _vmodelRepo.Create(EntityMapper.Map<VehicleModel>(viewModel));
     }
 
     public async Task<bool?> UpdateVehicleModel(UpdateVehicleModelVM viewModel)
     {
-        var model = EntityMapper.Map<VehicleModel>(viewModel);
-        var affected = await _vmodelRepo.Update(model); 
-        if (affected){
-            if(vehicleModelCache != null){
-                if(vehicleModelCache.TryGetValue(model.VehicleModelId, out VehicleModel? old)){
-                    old.ModelName = model.ModelName;
-                    old.VehicleMakeId = model.VehicleMakeId;
-                    if(vehicleModelCache.TryUpdate(model.VehicleModelId, old, old))
-                    return affected;
-                }
-            }
-        }
-
-        return affected;
+        return await _vmodelRepo.Update(EntityMapper.Map<VehicleModel>(viewModel)); 
     }
 
     public async Task<bool?> DeleteVehicleModel(int id){
-        var affected = await _vmodelRepo.Delete(id);
-        if(affected == true){
-            if(vehicleModelCache == null) return null;
+        return await _vmodelRepo.Delete(id);
+    }
 
-            return vehicleModelCache.TryRemove(id, out _);
-        }
-        return affected;
+    public async Task<IEnumerable<ViewBagManufacturer>> ListViewBagManufacturers()
+    {
+        return  EntityMapper.Map<IEnumerable<ViewBagManufacturer>>(await _vmakeRepo.List());
     }
 }

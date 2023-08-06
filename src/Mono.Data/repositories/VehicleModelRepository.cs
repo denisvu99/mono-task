@@ -14,26 +14,16 @@ public class VehicleModelRepository : IVehicleModelRepository
         _db = db;
     }
 
-    public ConcurrentDictionary<int, VehicleModel> InitDictionary()
+    public async Task<IEnumerable<VehicleModel>> List()
     {
-        var dictionary = _db.VehicleModels.Include(p => p.VehicleMake).ToDictionary(vm => vm.VehicleModelId);
-
-        return new ConcurrentDictionary<int, VehicleModel>(dictionary);
+        return await _db.VehicleModels.Include(p => p.VehicleMake).ToListAsync();
     }
 
-    public async Task<ConcurrentDictionary<int, VehicleModel>> List()
+    public async Task<bool?> Create(VehicleModel model)
     {
-        var dictionary = await _db.VehicleModels.Include(p => p.VehicleMake).ToDictionaryAsync(vm => vm.VehicleModelId);
-
-        return new ConcurrentDictionary<int, VehicleModel>(dictionary);
-    }
-
-    public async Task<VehicleModel?> Create(VehicleModel model)
-    {
-        var entity = await _db.VehicleModels.AddAsync(model);
+        await _db.VehicleModels.AddAsync(model);
         var affected = await _db.SaveChangesAsync();
-        if (affected == 1) return await Get(entity.Entity.VehicleModelId);
-        return null;
+        return affected == 1;
     }
     public async Task<VehicleModel?> Get(int id)
     {
@@ -63,18 +53,23 @@ public class VehicleModelRepository : IVehicleModelRepository
 
     public async Task<bool?> AddTo(int manufacturerId, int modelId){
 
-        var affected = await _db.VehicleModels
-            .Where(vm => vm.VehicleModelId == modelId)
-            .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, manufacturerId));
+        var model = await Get(modelId);
+        if (model == null) return null;
+        model.VehicleMakeId = manufacturerId;
+
+        _db.VehicleModels.Update(model);
+        var affected = await _db.SaveChangesAsync();
 
         return affected >= 1;
     }
 
     public async Task<bool?> RemoveFrom(int modelId){
 
-        var affected = await _db.VehicleModels
-            .Where(vm => vm.VehicleModelId == modelId)
-            .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, (int?)null));
+        var model = await Get(modelId);
+        if (model == null) return null;
+        model.VehicleMakeId = null;
+        _db.VehicleModels.Update(model);
+        var affected = await _db.SaveChangesAsync();
 
         return affected >= 1;
     }

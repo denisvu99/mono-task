@@ -4,6 +4,7 @@ using AutoMapper;
 using Mono.Data;
 using Mono.Contracts.Models;
 using Mono.Contracts.Services;
+using X.PagedList;
 
 namespace Mono.Mvc.Controllers;
 
@@ -18,23 +19,35 @@ public class VehicleController : Controller
         _vehicleService = NinjectProvider.Get<IVehicleService>();
     }
 
-    public async Task<IActionResult> Index(){
-        var models = await _vehicleService.ListVehicleModels();
+    public async Task<IActionResult> Index(string sortOrder, int? filter, int? page){
+        ViewBag.ManSort = String.IsNullOrEmpty(sortOrder) ? "man_desc" : "";
+        ViewBag.ModelSort = sortOrder == "model_asc" ? "model_desc" : "model_asc";
 
-        return View(models);
+        var models = await _vehicleService.ListVehicleModels(sortOrder, filter);
+
+        ViewBag.Manufacturers = await _vehicleService.ListViewBagManufacturers();
+
+        var pagedModel = await models.ToPagedListAsync(page ?? 1,10);
+        return View(pagedModel);
     }
 
-    public async Task<IActionResult> Manufacturers(){
-        IEnumerable<ManufacturersVM> manufacturers = await _vehicleService.ListManufacturers();
+    public async Task<IActionResult> Manufacturers(string sortOrder, int? filter, int? page){
+        ViewBag.ManSort = String.IsNullOrEmpty(sortOrder) ? "man_desc" : "";
+        ViewBag.CountSort = sortOrder == "count_asc" ? "count_desc" : "count_asc";
 
-        return View(manufacturers);
+        IEnumerable<ManufacturersVM> manufacturers = await _vehicleService.ListManufacturers(sortOrder, filter);
+
+        IQueryable<ManufacturersVM> queriableManufacturers = manufacturers.AsQueryable();
+
+        var pagedManufacturers = await queriableManufacturers.ToPagedListAsync(page ?? 1,10);
+        return View(pagedManufacturers);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateManufacturer(string name){
-        var manufacturers = await _vehicleService.CreateManufacturer(name);
+        await _vehicleService.CreateManufacturer(name);
 
-        return View(nameof(Manufacturers), manufacturers);
+        return RedirectToAction(nameof(Manufacturers));
     }
 
     [HttpPost]
@@ -78,9 +91,9 @@ public class VehicleController : Controller
 
     [HttpPost]
     public async Task<IActionResult> CreateVehicleModel(CreateVehicleModelVM viewModel){
-        var model = await _vehicleService.CreateVehicleModel(viewModel);
+        await _vehicleService.CreateVehicleModel(viewModel);
 
-        return View(nameof(Index), model);
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]

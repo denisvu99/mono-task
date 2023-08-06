@@ -38,13 +38,13 @@ internal class AutoMapperModule : NinjectModule
                 .ForMember(dest => dest.ManufacturerName, opt => opt.MapFrom(s => s.VehicleMake.ManufacturerName));
 
             //Config VehicleModelsExtendedVM
-            cfg.CreateMap<IEnumerable<VehicleMake>, VehicleModelsExtendedVM>()
-                .ForMember(dest => dest.VehicleModels, opt => opt.Ignore())
-                .ForMember(dest => dest.Manufacturers, opt => opt.MapFrom(s => s));
+            // cfg.CreateMap<IEnumerable<VehicleMake>, VehicleModelsExtendedVM>()
+            //     .ForMember(dest => dest.VehicleModels, opt => opt.Ignore())
+            //     .ForMember(dest => dest.Manufacturers, opt => opt.MapFrom(s => s));
 
-            cfg.CreateMap<IEnumerable<VehicleModelVM>, VehicleModelsExtendedVM>()
-                .ForMember(dest => dest.VehicleModels, opt => opt.MapFrom(s => s))
-                .ForMember(dest => dest.Manufacturers, opt => opt.Ignore());
+            // cfg.CreateMap<PaginatedList<VehicleModelVM>, VehicleModelsExtendedVM>()
+            //     .ForMember(dest => dest.VehicleModels, opt => opt.MapFrom(s => s))
+            //     .ForMember(dest => dest.Manufacturers, opt => opt.Ignore());
 
             //Config CreateVehicleModelVM
             cfg.CreateMap<CreateVehicleModelVM, VehicleModel>()
@@ -71,6 +71,11 @@ internal class AutoMapperModule : NinjectModule
                 .ForMember(dest => dest.ModelName, opts => opts.MapFrom(s => s.Name))
                 .ForMember(dest => dest.VehicleMakeId, opts => opts.MapFrom(s => s.ManufacturerId))
                 .ForMember(dest => dest.VehicleMake, opts => opts.Ignore());
+
+            //Config ViewBag Manufacturers
+            cfg.CreateMap<VehicleMake, ViewBagManufacturer>()
+                .ForMember(dest => dest.ManufacturerId, opts => opts.MapFrom(s => s.VehicleMakeId))
+                .ForMember(dest => dest.ManufacturerName, opts => opts.MapFrom(s => s.ManufacturerName));
 
         });
         config.AssertConfigurationIsValid();
