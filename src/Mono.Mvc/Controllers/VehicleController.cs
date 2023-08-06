@@ -72,21 +72,27 @@ public class VehicleController : Controller
     }
 
     public async Task<IActionResult> VehicleModel(int id){
-
-        return View();
+        var model = await _vehicleService.GetVehicleModel(id);
+        return View(model);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateVehicleModel(CreateVehicleModelVM viewModel){
+        var model = await _vehicleService.CreateVehicleModel(viewModel);
 
-        return RedirectToAction(nameof(Index));
+        return View(nameof(Index), model);
     }
 
     [HttpPost]
     public async Task<IActionResult> UpdateVehicleModel(UpdateVehicleModelVM viewModel){
-
+        var isUpdated = await _vehicleService.UpdateVehicleModel(viewModel);
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpPost]
+    public async Task<IActionResult> DeleteVehicleModel(int id){
+        var isDeleted = await _vehicleService.DeleteVehicleModel(id);
+        return RedirectToAction(nameof(Index));
+    }
 
 }

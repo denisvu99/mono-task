@@ -16,28 +16,28 @@ public class VehicleMakeRepository : IVehicleMakeRepository
 
     public ConcurrentDictionary<int, VehicleMake> InitDictionary()
     {
-        var dictionary = _db.VehicleMakes.Include(m => m.VehicleModels).ToDictionary(vm => vm.VehicleMakeId);
+        var dictionary = _db.VehicleMakes.Include(e => e.VehicleModels).ToDictionary(p => p.VehicleMakeId);
 
         return new ConcurrentDictionary<int, VehicleMake>(dictionary);
     }
 
     public async Task<ConcurrentDictionary<int, VehicleMake>> List()
     {
-        var dictionary = await _db.VehicleMakes.Include(m => m.VehicleModels).ToDictionaryAsync(vm => vm.VehicleMakeId);
+        var dictionary = await _db.VehicleMakes.Include(e => e.VehicleModels).ToDictionaryAsync(p => p.VehicleMakeId);
 
         return new ConcurrentDictionary<int, VehicleMake>(dictionary);
     }
 
     public async Task<VehicleMake?> Get(int id)
     {
-        return await _db.VehicleMakes.Include(m => m.VehicleModels).FirstOrDefaultAsync(e => e.VehicleMakeId == id);
+        return await _db.VehicleMakes.Include(e => e.VehicleModels).FirstOrDefaultAsync(p => p.VehicleMakeId == id);
     }
 
     public async Task<VehicleMake?> Create(VehicleMake model)
     {
         var entity = await _db.VehicleMakes.AddAsync(model);
         var affected = await _db.SaveChangesAsync();
-        if (affected == 1) return entity.Entity;
+        if (affected == 1) return await Get(entity.Entity.VehicleMakeId);
         return null;
     }
 

@@ -46,14 +46,14 @@ public class VehicleService : IVehicleService
     {
         if(manufacturerCache == null || vehicleModelCache == null) return null;
 
-        manufacturerCache.TryGetValue(id, out VehicleMake? manufacturer);
-        if (manufacturer == null){
+        
+        if (!manufacturerCache.TryGetValue(id, out VehicleMake? manufacturer)){
             manufacturer ??= await _vmakeRepo.Get(id);
             if (manufacturer != null) manufacturerCache.AddOrUpdate(id, manufacturer, (key, oldVal) => manufacturer);
             else return null;
         }
 
-        IEnumerable<VehicleModel> models = (IEnumerable<VehicleModel>)vehicleModelCache.Values;
+        IEnumerable<VehicleModel> models = vehicleModelCache.Values;
 
         ManufacturerVM model = EntityMapper.Map<ManufacturerVM>(manufacturer, vehicleModelCache.Values);
 
@@ -166,27 +166,63 @@ public class VehicleService : IVehicleService
 
     public async Task<UpdateVehicleModelVM> GetVehicleModel(int id)
     {
+        if(manufacturerCache == null || vehicleModelCache == null) return null;
 
-        var model = await _vmodelRepo.Get(id);
-        var manufacturers = await _vmakeRepo.List();
-        var vModel = EntityMapper.Map<UpdateVehicleModelVM>(model, manufacturers);
+        if(!vehicleModelCache.TryGetValue(id, out VehicleModel? vehicleModel)){
+            vehicleModel = await _vmodelRepo.Get(id);
+            if (vehicleModel != null) vehicleModelCache.AddOrUpdate(id, vehicleModel, (key, oldVal) => vehicleModel);
+            else return null;
+        }
+        var manufacturers = manufacturerCache.Values;
+        var vModel = EntityMapper.Map<UpdateVehicleModelVM>(vehicleModel, manufacturers);
 
-        throw new NotImplementedException();
+        return vModel;
     }
 
-    public async Task<bool?> CreateVehicleModel(CreateVehicleModelVM viewModel)
+    public async Task<VehicleModelsExtendedVM?> CreateVehicleModel(CreateVehicleModelVM viewModel)
     {
-        var model = EntityMapper.Map<VehicleModel>(viewModel);
-        await _vmodelRepo.Create(model);
+        var vehicleModel = await _vmodelRepo.Create(EntityMapper.Map<VehicleModel>(viewModel));
+        if(vehicleModelCache == null || manufacturerCache == null) return null;
+        if (vehicleModel != null){
+            vehicleModelCache.AddOrUpdate(vehicleModel.VehicleModelId, vehicleModel, (key, oldVal) => vehicleModel);
+            if (vehicleModel.VehicleMakeId != null){
+                if(manufacturerCache.TryGetValue((int)vehicleModel.VehicleMakeId, out VehicleMake? manufacturer)){
+                    manufacturer.VehicleModels.Add(vehicleModel);
+                    manufacturerCache.TryUpdate(manufacturer.VehicleMakeId, manufacturer,manufacturer);
+                }
+            }
+        }
+        IEnumerable<VehicleModelVM> vModelsList = EntityMapper.Map<IEnumerable<VehicleModelVM>>(vehicleModelCache.Values);
+        VehicleModelsExtendedVM newVehicleModel = EntityMapper.Map<VehicleModelsExtendedVM>(vModelsList, manufacturerCache.Values);
 
-        throw new NotImplementedException();
+        return newVehicleModel;
     }
 
     public async Task<bool?> UpdateVehicleModel(UpdateVehicleModelVM viewModel)
     {
         var model = EntityMapper.Map<VehicleModel>(viewModel);
-        await _vmodelRepo.Update(model); 
+        var affected = await _vmodelRepo.Update(model); 
+        if (affected){
+            if(vehicleModelCache != null){
+                if(vehicleModelCache.TryGetValue(model.VehicleModelId, out VehicleModel? old)){
+                    old.ModelName = model.ModelName;
+                    old.VehicleMakeId = model.VehicleMakeId;
+                    if(vehicleModelCache.TryUpdate(model.VehicleModelId, old, old))
+                    return affected;
+                }
+            }
+        }
 
-        throw new NotImplementedException();
+        return affected;
+    }
+
+    public async Task<bool?> DeleteVehicleModel(int id){
+        var affected = await _vmodelRepo.Delete(id);
+        if(affected == true){
+            if(vehicleModelCache == null) return null;
+
+            return vehicleModelCache.TryRemove(id, out _);
+        }
+        return affected;
     }
 }

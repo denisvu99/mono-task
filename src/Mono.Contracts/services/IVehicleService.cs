@@ -11,6 +11,7 @@ public interface IVehicleService {
     Task<bool?> RemoveModelFromManufacturer(int manufacturerId, int modelId);
     Task<VehicleModelsExtendedVM> ListVehicleModels();
     Task<UpdateVehicleModelVM> GetVehicleModel(int id);
-    Task<bool?> CreateVehicleModel(CreateVehicleModelVM viewModel);
+    Task<VehicleModelsExtendedVM?> CreateVehicleModel(CreateVehicleModelVM viewModel);
     Task<bool?> UpdateVehicleModel(UpdateVehicleModelVM viewModel);
+    Task<bool?> DeleteVehicleModel(int id);
 }

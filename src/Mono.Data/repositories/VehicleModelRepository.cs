@@ -32,59 +32,33 @@ public class VehicleModelRepository : IVehicleModelRepository
     {
         var entity = await _db.VehicleModels.AddAsync(model);
         var affected = await _db.SaveChangesAsync();
-        if (affected == 1) return entity.Entity;
-        return null;
-        if (affected == 1){
-            if (vehicleModelCache == null) return model;
-
-            return vehicleModelCache.AddOrUpdate(model.VehicleModelId,model, (key, oldVal) => model);
-        }
-
+        if (affected == 1) return await Get(entity.Entity.VehicleModelId);
         return null;
     }
     public async Task<VehicleModel?> Get(int id)
     {
-        if (vehicleModelCache == null) return null;
-        vehicleModelCache.TryGetValue(id, out VehicleModel? vm);
-        return await Task.FromResult(vm);
+        return await _db.VehicleModels.Include(e => e.VehicleMake).FirstOrDefaultAsync(p => p.VehicleModelId == id);
     }
 
-    public async Task<VehicleModel?> Update(VehicleModel model)
+    public async Task<bool> Update(VehicleModel model)
     {
         var affected = await _db.VehicleModels
             .Where(vm => vm.VehicleMakeId == model.VehicleMakeId)
             .ExecuteUpdateAsync(e => e
                 .SetProperty(p => p.ModelName, model.ModelName)
                 .SetProperty(p => p.VehicleMakeId, model.VehicleMakeId));
-
-        if (affected >= 1){
-            VehicleModel? old;
-            if(vehicleModelCache != null){
-                if(vehicleModelCache.TryGetValue(model.VehicleModelId, out old)){
-                    old.ModelName = model.ModelName;
-                    old.VehicleMakeId = model.VehicleMakeId;
-                    if(vehicleModelCache.TryUpdate(model.VehicleModelId, old, old))
-                    return await Task.FromResult(old);
-                }
-            }
-        }
-        return null;
+        
+        return affected >= 1;
     }
 
 
     public async Task<bool?> Delete(int id)
     {
-        VehicleModel? vm = _db.VehicleModels.Find(id);
-        if(vm != null){
-            _db.VehicleModels.Remove(vm);
-            int affected = await _db.SaveChangesAsync();
-            if(affected >= 1){
-                if(vehicleModelCache == null) return null;
-
-                return vehicleModelCache.TryRemove(id, out vm);
-            }
-        }
-        return null;
+        var vehicleModel = await Get(id);
+        if(vehicleModel == null) return null;
+        _db.VehicleModels.Remove(vehicleModel);
+        int affected = await _db.SaveChangesAsync();
+        return affected >= 1;
     }
 
     public async Task<bool?> AddTo(int manufacturerId, int modelId){
