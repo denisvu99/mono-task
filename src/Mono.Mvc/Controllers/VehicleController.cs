@@ -75,7 +75,7 @@ public class VehicleController : Controller
         var isUpdate = await _vehicleService.UpdateManufacturerName(id, name);
         if (isUpdate == null) Response.StatusCode = 404;
         else Response.StatusCode = 200;
-
+        Redirect(Request.Headers["Referer"].ToString());
         return RedirectToAction(nameof(Manufacturer), new { id });
     }
 
@@ -101,6 +101,9 @@ public class VehicleController : Controller
         var model = await _vehicleService.GetVehicleModel(id);
         if (model == null) Response.StatusCode = 404;
         else Response.StatusCode = 200;
+
+        ViewBag.Referer = Request.Headers["Referer"].ToString();
+
         return View(model);
     }
 
@@ -114,12 +117,12 @@ public class VehicleController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateVehicleModel(UpdateVehicleModelVM viewModel){
+    public async Task<IActionResult> UpdateVehicleModel(UpdateVehicleModelVM viewModel,string referer){
         var isUpdated = await _vehicleService.UpdateVehicleModel(viewModel);
         if (isUpdated == null) Response.StatusCode = 404;
         else Response.StatusCode = 200;
 
-        return RedirectToAction(nameof(Index));
+        return Redirect(referer);
     }
 
     [HttpPost]

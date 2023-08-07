@@ -3,7 +3,7 @@
 
 
 <div>
-  <form method="post" asp-controller="Vehicle" asp-action="UpdateVehicleModel">
+  <form method="post" asp-controller="Vehicle" asp-action="UpdateVehicleModel" asp-route-referer="@ViewBag.Referer">
     <div class="flex-se">
       <div asp-validation-summary="ModelOnly" class="text-danger"></div>
       

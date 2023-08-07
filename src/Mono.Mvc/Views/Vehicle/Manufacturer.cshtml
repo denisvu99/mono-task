@@ -57,8 +57,8 @@
                                 </td>
                                 <td>
                                     <div class="flex-se">
-                                        <form method="patch" asp-controller="Vehicle" asp-action="Vehicle" asp-route-id="@vehicle.VehicleModelId">
-                                            <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
+                                        <form method="post" asp-controller="Vehicle" asp-action="VehicleModel" asp-route-id="@vehicle.VehicleModelId">
+                                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
                                         </form>
                                         <form method="post" asp-controller="Vehicle" asp-action="RemoveModelFromManufacturer" asp-route-id="@Model.VehicleMakeId" asp-route-modelId="@vehicle.VehicleModelId">
                                             <button type="submit" class="btn btn-danger"><i class="fa-solid fa-minus"></i></button>
