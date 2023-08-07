@@ -36,6 +36,7 @@ public class VehicleController : Controller
     public async Task<IActionResult> Manufacturers(string sortOrder, int? filter, int? page){
         ViewBag.ManSort = String.IsNullOrEmpty(sortOrder) ? "man_desc" : "";
         ViewBag.CountSort = sortOrder == "count_asc" ? "count_desc" : "count_asc";
+        ViewBag.CurrentSort = sortOrder;
 
         IEnumerable<ManufacturersVM> manufacturers = await _vehicleService.ListManufacturers(sortOrder, filter);
 
@@ -69,21 +70,21 @@ public class VehicleController : Controller
     public async Task<IActionResult> UpdateManufacturerName(int id, string name){
         var model = await _vehicleService.UpdateManufacturerName(id, name);
 
-        return RedirectToAction(nameof(Manufacturer), new {id = id});
+        return RedirectToAction(nameof(Manufacturer), new { id });
     }
 
     [HttpPost]
     public async Task<IActionResult> AddModelToManufacturer(int id, int modelId){
         var isAdded = await _vehicleService.AddModelToManufacturer(id, modelId);
 
-        return RedirectToAction(nameof(Manufacturer), new {id = id});
+        return RedirectToAction(nameof(Manufacturer), new { id });
     }
 
     [HttpPost]
     public async Task<IActionResult> RemoveModelFromManufacturer(int id, int modelId){
         var isRemoved = await _vehicleService.RemoveModelFromManufacturer(id, modelId);
 
-        return RedirectToAction(nameof(Manufacturer), new {id = id});
+        return RedirectToAction(nameof(Manufacturer), new { id });
     }
 
     public async Task<IActionResult> VehicleModel(int id){

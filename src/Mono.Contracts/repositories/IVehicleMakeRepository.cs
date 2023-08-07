@@ -6,6 +6,6 @@ public interface IVehicleMakeRepository {
     Task<bool?> Create(VehicleMake model);
     Task<IEnumerable<VehicleMake>> List();
     Task<VehicleMake?> Get(int id);
-    Task<bool> UpdateName(int id, string name);
+    Task<bool?> UpdateName(int id, string name);
     Task<bool?> Delete(int id);
 }

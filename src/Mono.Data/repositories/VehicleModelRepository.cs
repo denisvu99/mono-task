@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 public class VehicleModelRepository : IVehicleModelRepository
 {
     private AppDbContext _db;
-    private static ConcurrentDictionary<int, VehicleModel>? vehicleModelCache;
 
     public VehicleModelRepository(AppDbContext db){
         _db = db;
@@ -30,14 +29,14 @@ public class VehicleModelRepository : IVehicleModelRepository
         return await _db.VehicleModels.Include(e => e.VehicleMake).FirstOrDefaultAsync(p => p.VehicleModelId == id);
     }
 
-    public async Task<bool> Update(VehicleModel model)
+    public async Task<bool?> Update(VehicleModel model)
     {
-        var affected = await _db.VehicleModels
-            .Where(vm => vm.VehicleMakeId == model.VehicleMakeId)
-            .ExecuteUpdateAsync(e => e
-                .SetProperty(p => p.ModelName, model.ModelName)
-                .SetProperty(p => p.VehicleMakeId, model.VehicleMakeId));
-        
+        var oldModel = await Get(model.VehicleModelId);
+        if(oldModel == null) return null;
+        oldModel.ModelName = model.ModelName;
+        oldModel.VehicleMakeId = model.VehicleMakeId;
+        _db.VehicleModels.Update(oldModel);
+        var affected = await _db.SaveChangesAsync();
         return affected >= 1;
     }
 

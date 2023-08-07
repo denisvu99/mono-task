@@ -40,12 +40,13 @@ public class VehicleMakeRepository : IVehicleMakeRepository
         return affected >= 1;
     }
 
-    public async Task<bool> UpdateName(int id, string name)
+    public async Task<bool?> UpdateName(int id, string name)
     {
-        var affected = await _db.VehicleMakes
-            .Where(p => p.VehicleMakeId == id)
-            .ExecuteUpdateAsync(e => e
-                .SetProperty(p => p.ManufacturerName, name));
+        var manufacturer = await Get(id);
+        if (manufacturer == null) return null;
+        manufacturer.ManufacturerName = name;
+        _db.VehicleMakes.Update(manufacturer);
+        var affected = await _db.SaveChangesAsync();
         return affected >= 1;
     }
 }

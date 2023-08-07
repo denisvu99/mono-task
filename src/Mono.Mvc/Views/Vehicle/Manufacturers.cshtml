@@ -71,7 +71,7 @@
                     @Html.PagedListPager((IPagedList)Model, page => Url.Action("Manufacturers",
                         new
                             {
-                                page,
+                                page, sortOrder = ViewBag.CurrentSort
                         }),
                         new PagedListRenderOptions
                         {
