@@ -18,7 +18,7 @@ public class VehicleModelRepository : IVehicleModelRepository
         return await _db.VehicleModels.Include(p => p.VehicleMake).ToListAsync();
     }
 
-    public async Task<bool?> Create(VehicleModel model)
+    public async Task<bool> Create(VehicleModel model)
     {
         await _db.VehicleModels.AddAsync(model);
         var affected = await _db.SaveChangesAsync();

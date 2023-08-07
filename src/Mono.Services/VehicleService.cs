@@ -51,7 +51,7 @@ public class VehicleService : IVehicleService
         return EntityMapper.Map<ManufacturerVM>(manufacturer, models);
     }
 
-    public async Task<bool?> CreateManufacturer(string name)
+    public async Task<bool> CreateManufacturer(string name)
     {
         return await _vmakeRepo.Create(new VehicleMake() {ManufacturerName = name});
     }
@@ -103,7 +103,7 @@ public class VehicleService : IVehicleService
         return EntityMapper.Map<UpdateVehicleModelVM>(vehicleModel, manufacturers);
     }
 
-    public async Task<bool?> CreateVehicleModel(CreateVehicleModelVM viewModel)
+    public async Task<bool> CreateVehicleModel(CreateVehicleModelVM viewModel)
     {
         return await _vmodelRepo.Create(EntityMapper.Map<VehicleModel>(viewModel));
     }

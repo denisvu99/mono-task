@@ -3,7 +3,7 @@ using Mono.Contracts.Models;
 
 namespace Mono.Contracts.Repositories;
 public interface IVehicleModelRepository {
-    Task<bool?> Create(VehicleModel model);
+    Task<bool> Create(VehicleModel model);
     Task<IEnumerable<VehicleModel>> List();
     Task<VehicleModel?> Get(int id);
     Task<bool?> Update(VehicleModel model);
