@@ -1,6 +1,6 @@
 using AutoMapper;
 
-namespace Mono.Data;
+namespace Mono.Services;
 public static class EntityMapper {
 
     private static IMapper _mapper = NinjectProvider.Get<IMapper>();

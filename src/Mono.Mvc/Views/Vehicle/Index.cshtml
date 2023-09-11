@@ -1,15 +1,14 @@
-@using Mono.Contracts.Models;
-@model VehicleModelsExtendedVM
+@model IPagedList<VehicleModelVM>
 
 <div>
-    <div style="display: flex; align-items-center">
+    <div style="display: flex; align-items: center">
         <button type="button" class="btn btn-primary" style="margin-right: 1.5em; white-space: nowrap" data-bs-toggle="modal" data-bs-target="#createVehicleModelModal">
             Create New
         </button>
-        <select class="form-select form-select-xs" style="width: 25%; margin-right: 1.5em">
+        <select onchange="redirectToManufacturers(this)" class="form-select form-select-xs" style="width: 25%; margin-right: 1.5em">
             <option selected>Select manufacturer</option>
-                    @foreach(var item in Model.Manufacturers){
-                        <option value="@item.VehicleMakeId">@item.ManufacturerName</option>
+                    @foreach(var item in @ViewBag.Manufacturers){
+                        <option value="@item.ManufacturerId">@item.ManufacturerName</option>
                     }
         </select>
         <input class="form-control" name="search" placeholder="Search" onchange=""/>
@@ -21,12 +20,31 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Model <a class="btn"><i class="fa-solid fa-arrow-up"></i></a></th>
-                        <th>Manufacturer <a class="btn"><i class="fa-solid fa-arrow-up"></i></a></th>
+                        <th style="margin: 0; padding: 0;">
+                            Model 
+                            <a class="btn" asp-action="Index" asp-route-sortOrder="@ViewBag.ModelSort" asp-route-filter="@ViewBag.CurrentFilter">
+                                @if(ViewBag.ModelSort == "model_asc"){
+                                    <i class="fa-solid fa-arrow-up"></i>
+                                }else{
+                                    <i class="fa-solid fa-arrow-up fa-rotate-180"></i>
+                                }
+                            </a>
+                        </th>
+                        <th style="margin: 0; padding: 0;">
+                            Manufacturer 
+                            <a class="btn" asp-action="Index" asp-route-sortOrder="@ViewBag.ManSort" asp-route-filter="@ViewBag.CurrentFilter">
+                                @if(String.IsNullOrEmpty(ViewBag.ManSort)){
+                                    <i class="fa-solid fa-arrow-up"></i>
+                                }else{
+                                    <i class="fa-solid fa-arrow-up fa-rotate-180"></i>
+                                }
+                            </a>
+                        </th>
+                        <th style="width: 20%; white-space: nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (VehicleModelVM car in Model.VehicleModels)
+                    @foreach (VehicleModelVM car in Model)
                     {
                         <tr>
                             <td>
@@ -35,14 +53,50 @@
                             <td>
                                 @car.ManufacturerName
                             </td>
+                            <td>
+                                <div class="flex-se">
+                                    <form method="get" asp-controller="Vehicle" asp-action="VehicleModel" asp-route-id="@car.ModelId">
+                                        <button type="submit" class="btn btn-primary update-model-btn">
+                                            <i class="fa-solid fa-gear" style="color: #ffffff;"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" asp-controller="Vehicle" asp-action="DeleteVehicleModel" asp-route-id="@car.ModelId">
+                                        <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+            <div style="display: flex; justify-content: flex-end">
+                @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index",
+                    new
+                        {
+                            page, sortOrder = ViewBag.CurrentSort, filter = ViewBag.CurrentFilter
+                    }),
+                    new PagedListRenderOptions
+                    {
+                        LiElementClasses = new string[] { "page-item" },
+                        PageClasses = new string[] { "page-link"},
+                        Display = PagedListDisplayMode.IfNeeded
+
+                        })
+            </div>
         }
     </div>
 </div>
 
-@await Html.PartialAsync("_CreateVehicleModelModal", new CreateVehicleModelVM(){ManufacturersList = Model.Manufacturers})
+@await Html.PartialAsync("_CreateVehicleModelModal", new CreateVehicleModelVM(){ManufacturersList = ViewBag.Manufacturers})
 
-
+@section Scripts {
+    <script>
+        function redirectToManufacturers(selectElement) {
+            var selectedValue = selectElement.value;
+            if (selectedValue !== '') {
+                var sortOrder = '@ViewBag.CurrentSort';
+                window.location.href = '@Url.Action("Index", "Vehicle")' + '?sortOrder=' + sortOrder + '&filter=' + selectedValue;
+            }
+        }
+    </script>
+}

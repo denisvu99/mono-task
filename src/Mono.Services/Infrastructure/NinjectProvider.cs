@@ -1,15 +1,17 @@
 using Ninject;
 using Ninject.Modules;
 
-namespace Mono.Data;
-public static class NinjectProvider{
+namespace Mono.Services;
+internal static class NinjectProvider{
     static StandardKernel _kernel;
 
     static public void Initialize(){
+
         _kernel = new StandardKernel(new NinjectModule[] {
-            new DataModule(), 
-            new AutoMapperModule()
-        });
+            new AutoMapperModule(),
+            new DataModule(),
+            });
+            
     }
 
     static public T Get<T>(){

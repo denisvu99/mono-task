@@ -6,5 +6,5 @@ public class CreateVehicleModelVM {
     [Required]
     public string Name {get; set;}
     public int? ManufacturerId {get; set;}
-    public ICollection<VehicleMake> ManufacturersList {get; set;}
+    public ICollection<ViewBagManufacturer> ManufacturersList {get; set;}
 }

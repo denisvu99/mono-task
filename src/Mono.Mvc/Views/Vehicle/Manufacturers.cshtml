@@ -1,5 +1,4 @@
-@using Mono.Contracts.Models;
-@model IEnumerable<ManufacturersVM>
+@model IPagedList<ManufacturersVM>
 
 <div style="margin-top: 8vh;">
     <div class="flex-se">
@@ -17,38 +16,72 @@
         @if (@Model == null){
             <div>No manufacturers found</div>
         }else{
-            <table class="table" style="width:50%;">
-                <thead>
-                    <tr>
-                        <th style="width: 40%;margin: 0; padding: 0;">Manufacturer <a class="btn"><i class="fa-solid fa-arrow-up fa-xs"></i></a></th>
-                        <th style="width: 40%;margin: 0; padding: 0;">Model count <a class="btn"><i class="fa-solid fa-arrow-up fa-xs"></i></a></th>
-                        <th style="width: 20%;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (ManufacturersVM manufacturer in Model)
-                    {
-                            <tr>
-                                <td>
-                                    @Html.DisplayFor(item => manufacturer.ManufacturerName)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(item => manufacturer.Count)
-                                </td>
-                                <td>
-                                    <div class="flex-se">
-                                        <form method="patch" asp-controller="Vehicle" asp-action="Manufacturer" asp-route-id="@manufacturer.VehicleMakeId">
-                                            <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
-                                        </form>
-                                        <form method="post" asp-controller="Vehicle" asp-action="DeleteManufacturer" asp-route-id="@manufacturer.VehicleMakeId">
-                                            <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="flex-col" style="width: 50%;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;margin: 0; padding: 0;">
+                                Manufacturer 
+                                <a class="btn" asp-action="Manufacturers" asp-route-sortOrder="@ViewBag.ManSort">
+                                    @if(String.IsNullOrEmpty(ViewBag.ManSort)){
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    }else{
+                                        <i class="fa-solid fa-arrow-up fa-rotate-180"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th style="width: 40%;margin: 0; padding: 0;">
+                                Model Count 
+                                <a class="btn" asp-action="Manufacturers" asp-route-sortOrder="@ViewBag.CountSort">
+                                    @if(ViewBag.CountSort == "count_asc"){
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    }else{
+                                        <i class="fa-solid fa-arrow-up fa-rotate-180"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th style="width: 20%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (ManufacturersVM manufacturer in Model)
+                        {
+                                <tr>
+                                    <td>
+                                        @manufacturer.ManufacturerName
+                                    </td>
+                                    <td>
+                                        @manufacturer.Count
+                                    </td>
+                                    <td>
+                                        <div class="flex-se">
+                                            <form method="get" asp-controller="Vehicle" asp-action="Manufacturer" asp-route-id="@manufacturer.VehicleMakeId">
+                                                <button class="btn btn-primary"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></button>
+                                            </form>
+                                            <form method="post" asp-controller="Vehicle" asp-action="DeleteManufacturer" asp-route-id="@manufacturer.VehicleMakeId">
+                                                <button type="submit" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                        }
+                    </tbody>
+                </table>
+                <div style="display: flex; justify-content: flex-end">
+                    @Html.PagedListPager((IPagedList)Model, page => Url.Action("Manufacturers",
+                        new
+                            {
+                                page, sortOrder = ViewBag.CurrentSort
+                        }),
+                        new PagedListRenderOptions
+                        {
+                            LiElementClasses = new string[] { "page-item" },
+                            PageClasses = new string[] { "page-link"},
+                            Display = PagedListDisplayMode.IfNeeded
+
+                            })
+                </div>
+            </div>
         }
     </div>
 </div>

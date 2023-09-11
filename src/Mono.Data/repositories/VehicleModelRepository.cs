@@ -8,102 +8,68 @@ using System.Collections.Concurrent;
 public class VehicleModelRepository : IVehicleModelRepository
 {
     private AppDbContext _db;
-    private static ConcurrentDictionary<int, VehicleModel>? vehicleModelCache;
 
-    public VehicleModelRepository(){
-        _db = NinjectProvider.Get<AppDbContext>();
-
-        if (vehicleModelCache is null)
-        {
-            vehicleModelCache = new ConcurrentDictionary<int, VehicleModel>(_db.VehicleModels.ToDictionary(vm => vm.VehicleModelId));
-        }
-    }
-    public async Task<VehicleModel?> Create(VehicleModel model)
-    {
-        EntityEntry<VehicleModel> vm = await _db.VehicleModels.AddAsync(model);
-        int affected = await _db.SaveChangesAsync();
-        if (affected == 1){
-            if (vehicleModelCache == null) return model;
-
-            return vehicleModelCache.AddOrUpdate(model.VehicleModelId,model, (key, oldVal) => model);
-        }
-
-        return null;
-    }
-    public async Task<VehicleModel?> Get(int id)
-    {
-        if (vehicleModelCache == null) return null;
-        vehicleModelCache.TryGetValue(id, out VehicleModel? vm);
-        return await Task.FromResult(vm);
+    public VehicleModelRepository(AppDbContext db){
+        _db = db;
     }
 
     public async Task<IEnumerable<VehicleModel>> List()
     {
-        return await Task.FromResult(vehicleModelCache == null ? Enumerable.Empty<VehicleModel>() : vehicleModelCache.Values);
+        return await _db.VehicleModels.Include(p => p.VehicleMake).ToListAsync();
     }
 
-    public async Task<VehicleModel?> Update(int id, VehicleModel model)
+    public async Task<bool> Create(VehicleModel model)
     {
-        VehicleModel? old;
-        if(vehicleModelCache != null){
-            if(vehicleModelCache.TryGetValue(id, out old)){
-                if(vehicleModelCache.TryUpdate(id, model, old))
-                return await Task.FromResult(model);
-            }
-        }
-        return null;
+        await _db.VehicleModels.AddAsync(model);
+        var affected = await _db.SaveChangesAsync();
+        return affected == 1;
+    }
+    public async Task<VehicleModel?> Get(int id)
+    {
+        return await _db.VehicleModels.Include(e => e.VehicleMake).FirstOrDefaultAsync(p => p.VehicleModelId == id);
+    }
+
+    public async Task<bool?> Update(VehicleModel model)
+    {
+        var oldModel = await Get(model.VehicleModelId);
+        if(oldModel == null) return null;
+        oldModel.ModelName = model.ModelName;
+        oldModel.VehicleMakeId = model.VehicleMakeId;
+        _db.VehicleModels.Update(oldModel);
+        var affected = await _db.SaveChangesAsync();
+        return affected >= 1;
     }
 
 
     public async Task<bool?> Delete(int id)
     {
-        VehicleModel? vm = _db.VehicleModels.Find(id);
-        if(vm != null){
-            _db.VehicleModels.Remove(vm);
-            int affected = await _db.SaveChangesAsync();
-            if(affected >= 1){
-                if(vehicleModelCache == null) return null;
-
-                return vehicleModelCache.TryRemove(id, out vm);
-            }
-        }
-        return null;
+        var vehicleModel = await Get(id);
+        if(vehicleModel == null) return null;
+        _db.VehicleModels.Remove(vehicleModel);
+        int affected = await _db.SaveChangesAsync();
+        return affected >= 1;
     }
 
-    public async Task<VehicleModel?> AddTo(int manufacturerId, int modelId){
+    public async Task<bool?> AddTo(int manufacturerId, int modelId){
 
-        var affected = _db.VehicleModels
-            .Where(vm => vm.VehicleModelId == modelId)
-            .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, manufacturerId));
+        var model = await Get(modelId);
+        if (model == null) return null;
+        model.VehicleMakeId = manufacturerId;
 
-        VehicleModel? old;
-        if(vehicleModelCache != null){
-            if(vehicleModelCache.TryGetValue(modelId, out old)){
-                old.VehicleMakeId = manufacturerId;
-                if(vehicleModelCache.TryUpdate(modelId, old, old)){
-                    return await Task.FromResult(old);
-                }
-            }
-        }
-        return null;
+        _db.VehicleModels.Update(model);
+        var affected = await _db.SaveChangesAsync();
+
+        return affected >= 1;
     }
 
-    public async Task<VehicleModel?> RemoveFrom(int modelId){
+    public async Task<bool?> RemoveFrom(int modelId){
 
-        var affected = _db.VehicleModels
-            .Where(vm => vm.VehicleModelId == modelId)
-            .ExecuteUpdateAsync(e => e.SetProperty(p => p.VehicleMakeId, (int?)null));
+        var model = await Get(modelId);
+        if (model == null) return null;
+        model.VehicleMakeId = null;
+        _db.VehicleModels.Update(model);
+        var affected = await _db.SaveChangesAsync();
 
-        VehicleModel? old;
-        if(vehicleModelCache != null){
-            if(vehicleModelCache.TryGetValue(modelId, out old)){
-                old.VehicleMakeId = null;
-                old.VehicleMake = null;
-                if(vehicleModelCache.TryUpdate(modelId, old, old)){
-                    return await Task.FromResult(old);
-                }
-            }
-        }
-        return null;
+        return affected >= 1;
     }
 }
